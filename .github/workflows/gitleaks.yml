@@ -1,0 +1,41 @@
+name: Gitleaks Scan
+
+on:
+  # Run on every PR to master that is ready to review.
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, draft]
+    branches:
+       - master
+
+  # Run for every change in master.
+  push:
+    branches:
+       - master
+
+  # Run manually.
+  workflow_dispatch:
+
+  schedule:
+    # Run this once a day even if there are no commits.
+    - cron:  '0 0 */1 * *'
+
+env:
+  CSFY_CI: true
+jobs:
+  run_gitleaks:
+    name: Run gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          GITLEAKS_ENABLE_COMMENTS: false
+          GITLEAKS_ENABLE_SUMMARY: true
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+          GITLEAKS_CONFIG: .github/gitleaks-rules.toml
